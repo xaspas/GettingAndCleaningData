@@ -1,6 +1,22 @@
 library(dplyr)
 
 runAnalysis <- function(){
+  
+  #Downloading Data
+  url <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+  tf <- tempfile(tmpdir = getwd(), fileext = ".zip")
+  download.file(url,tf,mode="wb", quiet=TRUE)
+  unzip(tf,exdir = getwd(), overwrite = TRUE)
+  file.remove(tf)
+  rm(tf) #HouseKeeping
+  rm(url) #HouseKeeping
+  
+  if (file.exists("./UCI HAR Dataset")) {
+    setwd("./UCI HAR Dataset") #Moving to data folder
+  } else {
+    stop("Error downloading or unzipping files")
+  }
+  
   #Load Test data
   subjects <- read.table("test/subject_test.txt")
   activities <- read.table("test/y_test.txt")
@@ -17,8 +33,7 @@ runAnalysis <- function(){
   rm(subjects)
   rm(activities)
   rm(features)
-  
-  
+
   ####### Assignment Step 1 #######
   #Merge test & train datasets
   merged_data <- rbind(test,train)
@@ -59,9 +74,9 @@ runAnalysis <- function(){
   #Replace Gyro with Gyroscope
   names(subset_data) <- gsub("Gyro", "Gyroscope", names(subset_data))
   #Replace mean() with Mean
-  names(subset_data) <- gsub("mean[(][)]", "Mean", names(subset_data))
+  names(subset_data) <- gsub("[(][)]", "", names(subset_data))
   #Replace std() with Std
-  names(subset_data) <- gsub("std[(][)]", "Std", names(subset_data))
+  names(subset_data) <- gsub("[(][)]", "", names(subset_data))
   
   
   #Assignment Step 5
@@ -76,6 +91,7 @@ runAnalysis <- function(){
   rm(selected_features) #HouseKeeping
   
   #Writing Tidy Data to CSV file
+  setwd("..")
   write.table(tidy_data,file="tidyData.csv",sep=",",row.names = FALSE,fileEncoding = "UTF-8")
   
   tidy_data
